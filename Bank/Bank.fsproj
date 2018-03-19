@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Events.fs" />
+    <Compile Include="Commands.fs" />
+    <Compile Include="States.fs" />
+    <Compile Include="Domain.fs" />
+    <Compile Include="Program.fs" />
+    <None Include="appsettings.json" CopyToOutputDirectory="PreserveNewest"/>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Akka" Version="1.3.5" />
+    <PackageReference Include="Akka.Persistence" Version="1.3.5" />
+    <PackageReference Include="Akka.Persistence.SqlServer" Version="1.3.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.1" />
+  </ItemGroup>
+</Project>

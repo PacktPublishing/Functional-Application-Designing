@@ -1,0 +1,20 @@
+@startuml test
+scale 1
+hide footbox
+actor Customer
+participant "Command Handler"  as ch <<actor>>
+entity "Source Account"  as sa <<aggregate>>
+entity "Target Account" as ta <<aggregate>>
+control "Transfer Process" as tp <<FSM>>
+autonumber
+Customer ->  ch : Transfer Money
+ch -> sa : Transfer Money
+note left: In step 2,\nValidate the command and\ncreate actors if necessary.
+sa -[#blue]> tp : Amount Reserved (source)
+tp -> ta :  Transfer Money
+ta -[#blue]>  tp : Amount Reserved (target)
+tp -> sa : Confirm Reservation
+sa -[#blue]> tp :  Reservation Confirmed (source)
+tp -> ta : Confirm Reservation
+ta -[#blue]> tp : Reservation Confirmed (target)
+@enduml

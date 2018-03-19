@@ -1,0 +1,9 @@
+@startuml state
+state "Target Approving" as ta
+state "Source Committing" as sc
+state "Target Committing" as tc
+[*] -->  ta : Amount Reserved (source)
+ta --> sc : Amount Reserved (target)
+sc --> tc : Reservation Confirmed (source)
+tc --> [*] : Reservation Confirmed (target)
+@enduml
