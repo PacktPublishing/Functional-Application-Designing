@@ -6,7 +6,6 @@ open System.IO
 open System
 open Akka.Configuration
 open System.Reflection
-open System.Threading
 
 [<EntryPoint>]
 let main _ =
@@ -29,6 +28,4 @@ let main _ =
     commandHandler.Tell(TransferMoney("1","2",1950M,Guid.NewGuid().ToString()))
 
     Console.ReadKey() |> ignore
-    let z = commandHandler
-    Console.WriteLine(z.Path)
     0

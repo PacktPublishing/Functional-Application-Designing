@@ -17,7 +17,6 @@ type AccountActor (accountId) as account =
 
     let updateState (event : Event) =
         match event with
-
         | :? BalanceSet as e ->
             currentBalance <- e.Amount
             availableBalance <- currentBalance
@@ -35,7 +34,8 @@ type AccountActor (accountId) as account =
             | Some amount ->
                 reservations <- reservations.Remove e.TrxId
                 currentBalance <- currentBalance - amount
-                availableBalance <- currentBalance
+                if  amount < 0M then
+                    availableBalance <- availableBalance - amount
             | _ -> ()
         | _ -> ()
 
@@ -53,7 +53,6 @@ type AccountActor (accountId) as account =
          | :? TransferRejected as e ->
             tellToTransactionProcess e (e.TrxId)
             passivateIfApplicable()
-
 
          | :? AmountReserved as e -> tellToTransactionProcess e (e.TrxId)
          | :? BalanceSet -> passivateIfApplicable()
@@ -81,10 +80,10 @@ type AccountActor (accountId) as account =
 
 
     let confirmReservation (cmd : ConfirmReservation) =
+        let event = ReservationConfirmed cmd.TrxId
         match reservations.TryFind cmd.TrxId with
-        | Some _ ->
-            handleEvent <| ReservationConfirmed cmd.TrxId
-        | _ -> ()
+        | Some _ -> handleEvent event
+        | _ -> publishSideEffects event
         true
 
     let recover (message:obj) =
@@ -126,10 +125,11 @@ type TransactionProcess (cmd:TransferMoney) as t =
                 fun x ->
                     fun _->
                         match x.FsmEvent with
-                        | :? AmountReserved as e ->
+                        | :? AmountReserved ->
                             goto(targetApproving)
                                 .AndThen(fun _ ->
-                                    TransferMoney(cmd.Source,cmd.Target,-cmd.Amount,cmd.TrxId) |> tellToAccount cmd.Target)
+                                    TransferMoney(cmd.Source,cmd.Target,-cmd.Amount,cmd.TrxId) 
+                                        |> tellToAccount cmd.Target)
                         | :? TransferRejected ->
                             cmd.TrxId |> PassivateTrx |> context.Parent.Tell
                             stop()
@@ -160,7 +160,7 @@ type TransactionProcess (cmd:TransferMoney) as t =
             fun x ->
                     fun _->
                         match x.FsmEvent with
-                        | :? ReservationConfirmed as e ->
+                        | :? ReservationConfirmed ->
                                 cmd.TrxId |> PassivateTrx |> context.Parent.Tell
                                 stop()
                         | _ -> stay())
@@ -221,8 +221,6 @@ type CommandHandler () as commandHandler =
             accountPassivationQueue <- accountPassivationQueue.Add(accountId,1)
             accounts<- accounts.Add(accountId, actor)
             actor
-
-
 
     let createTrx (cmd : TransferMoney) =
         if not(transactions.ContainsKey(cmd.TrxId)) then
